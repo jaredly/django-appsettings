@@ -19,18 +19,17 @@ Usage
 
 So you want to use this in your app? Well, just create a settings.py for your
 app (which will be autodiscovered by _appsettings_) and register your
-settings. Example:
+settings. Example::
 
-::
     import appsettings
     from appsettings import values
     register = appsettings.register('mymodule')
 
     # settings are organized into groups.
     # this will define settings
-        # mymodule.story.greeting, 
-        # mymodule.story.pigs,
-        # etc.
+    # mymodule.story.greeting, 
+    # mymodule.story.pigs,
+    # etc.
     @register
     class Story:
         # int, string, and float types are auto-discovered.
@@ -41,13 +40,12 @@ settings. Example:
         houses = valuse.IntValue(3, doc = "number of houses in which to hide")
         myhouse = values.ChoiceValue(['straw','sticks','bricks'], 'straw')
 
-using the settings in the rest of your app couldn't be easier.
+using the settings in the rest of your app couldn't be easier::
 
-::
     from appsettings import settings.mymodule as settings
 
     def run_away():
         return "%s pigs are running into a house made of %s"
                         %(settings.story.pigs, settings.story.myhouse)
 
-more thorough documentation to come shortly.
+more thorough documentation (hopefully sphinx-pretty API docs) to come shortly.
