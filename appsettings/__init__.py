@@ -1,10 +1,17 @@
 '''this autodiscover stuff was copied from the contrib.admin app'''
-from settingsobj
+import settingsobj
+from models import *
 
 settings = settingsobj.Settings()
 
 def register(appname):
-    """register your settings with settings2. usually used as a @decorator"""
+    """register your settings with appsettings. usually used as a @decorator
+    e.g.
+    register = appsettings.register('appname')
+    @register
+    class Settingsgroup:
+        ...
+    """
     return lambda classobj:settings._register(appname, classobj)
 
 

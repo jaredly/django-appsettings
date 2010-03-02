@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.sites.models import Site
 
 class Setting(models.Model):
     site = models.ForeignKey(Site)
@@ -16,5 +17,4 @@ class Setting(models.Model):
             if current is not None and current is not '':
                 return
         super(Setting, self).__setattr__(name, value)
-
 
