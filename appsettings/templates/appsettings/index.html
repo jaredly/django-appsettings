@@ -1,0 +1,14 @@
+{% extends base_template %}
+
+{% block title %}App Settings{% endblock %}
+{% block smalltitle %}App Settings{% endblock %}
+
+{% block content %}
+{{ greeting }}
+<ul>
+    {% for app in apps %}
+        <li><a href="{{ app }}/">{{ app }}</a></li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
