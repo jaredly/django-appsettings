@@ -8,28 +8,39 @@ does not have write access to your server :) appsettings also provides an
 interface (similar to the admin interface for models) for editing these
 settings.
 
+Features
+--------
+
+- an organized system for managing settings
+- degrades gracefully when there's no database (settings will just be read-only)
+- uses forms.Field classes to store setting types -- totally customizeable for
+  - validation
+  - serialization
+  - display widgets
+- supports full user overrides in project/settings.py
+
 Todo
 ----
 
-- unittests
-- the web interface; hopefully with customizeable templates
+- improve the web interface
+- create examples
 
 Usage
 =====
 
 So you want to use this in your app? Well, just create a settings.py for your
-app (which will be autodiscovered by _appsettings_) and register your
-settings. Example::
+app (which will be auto-loaded by appsettings in the same way contrib.admin
+loads your admin.py) and register your settings. Example::
 
     import appsettings
-    from appsettings import values
+    from django import forms
     register = appsettings.register('mymodule')
 
     # settings are organized into groups.
     # this will define settings
-    # mymodule.story.greeting, 
-    # mymodule.story.pigs,
-    # etc.
+    #   mymodule.story.greeting, 
+    #   mymodule.story.pigs,
+    #   etc.
     @register
     class Story:
         # int, string, and float types are auto-discovered.
@@ -37,15 +48,19 @@ settings. Example::
         pigs = 3
         wolves = 1
         # or you can specify the type
-        houses = valuse.IntValue(3, doc = "number of houses in which to hide")
-        myhouse = values.ChoiceValue(['straw','sticks','bricks'], 'straw')
+        houses = forms.IntegerField(initial = 3, doc = "number of houses in which to hide")
+        myhouse = forms.ChoiceField(choices = (('straw', 'Straw'),
+                                             ('sticks', 'Sticks'),
+                                             ('bricks', 'Bricks')),
+                                    initial = 'straw')
 
 using the settings in the rest of your app couldn't be easier::
 
-    from appsettings import settings.mymodule as settings
+    import appsettings
+    settings = appsettings.settings.mymodule
 
     def run_away():
-        return "%s pigs are running into a house made of %s"
-                        %(settings.story.pigs, settings.story.myhouse)
+        return "%s pigs are running into a house made of %s" \
+                        % (settings.story.pigs, settings.story.myhouse)
 
 more thorough documentation (hopefully sphinx-pretty API docs) to come shortly.
