@@ -2,6 +2,9 @@
 import settingsobj
 from models import *
 
+from django.contrib import admin
+admin.autodiscover()
+
 settings = settingsobj.Settings()
 
 def register(appname):

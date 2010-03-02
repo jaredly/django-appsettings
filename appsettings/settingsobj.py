@@ -8,7 +8,8 @@ except:
 import inspect
 from models import Setting
 from django.contrib.sites.models import Site
-from values import *
+from django.utils.encoding import force_unicode
+from django import forms
 
 class SettingsException(Exception):pass
 
@@ -41,9 +42,9 @@ class App(object):
     def __getattr__(self, name):
         if name not in ('_vals', '_name', '_add'):
             if name not in self._vals:
-                if 'basic' in self._vals and name in self.basic._vals:
-                    return getattr(self.basic, name)
-                raise SettingsException, 'group not found'
+                if 'base' in self._vals and name in self._vals['base']._vals:
+                    return getattr(self._vals['base'], name)
+                raise SettingsException, 'group not found: %s' % name
             return self._vals[name]
         return super(App, self).__getattribute__(name)
 
@@ -64,15 +65,15 @@ class Group(object):
             val = attr.object
             key = attr.name
             if type(val) == int:
-                val = IntValue(val)
+                val = forms.IntegerField(label=key.title(), initial=val)
             elif type(val) == float:
-                val = FloatValue(val)
+                val = forms.FloatField(label=key.title(), initial=val)
             elif type(val) == str:
-                val = StringValue(val)
+                val = forms.CharField(label=key.title(), initial=val)
             elif val in (True, False):
-                val = BoolValue(val)
-            elif not isinstance(val, Value):
-                raise SettingsException, "unknown setting type for value '%s' and key '%s'" % (val, key)
+                val = forms.BooleanField(label=key.title(), initial=val)
+            elif not isinstance(val, forms.Field):
+                raise SettingsException, 'settings must be of a valid form field type'% (val, key)
             val._parent = self
             self._vals[key] = val
         if has_db:
@@ -80,7 +81,7 @@ class Group(object):
                     class_name=self._name)
             for setting in settings:
                 if self._vals.has_key(setting.key):
-                    self._vals[setting.key].loadval(setting.value)
+                    self._vals[setting.key].initial = self._vals[setting.key].clean(setting.value)
                 else:
                     ## the app removed the setting... shouldn't happen 
                     ## in production. maybe error? or del it?
@@ -90,7 +91,7 @@ class Group(object):
         if name not in ('_vals', '_name', '_appname'):
             if name not in self._vals:
                 raise AttributeError, 'setting "%s" not found'%name
-            return self._vals[name].val
+            return self._vals[name].initial
         return super(Group, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
@@ -102,17 +103,22 @@ class Group(object):
             raise AttributeError, 'setting "%s" not found'%name
         if not has_db:
             raise SettingsException, "no database -- settings are immutable"
-        if not self._vals[name].validate(value):
-            raise ValueError, 'invalid value "%s" for setting type %s'%(value, 
-                    self._vals[name].__class__.__name__)
+        self._vals[name].initial = self._vals[name].clean(value)
         try:
             setting = Setting.objects.get(app = self._appname,
+                    site = Site.objects.get_current(), 
                     class_name = self._name,
                     key = name)
         except Setting.DoesNotExist:
-            setting = Setting(site = Site.objects.get_current(), app = self._appname, class_name = self._name, key = name)
-        setting.value = self._vals[name].serialize(value)
+            setting = Setting(site = Site.objects.get_current(), 
+                    app = self._appname, 
+                    class_name = self._name, 
+                    key = name)
+        serialized = value
+        if hasattr(self._vals[name].widget, '_format_value'):
+            serialized = self._vals[name].widget._format_value(value)
+        serialized = force_unicode(serialized)
+        setting.value = serialized
         setting.save()
-        self._vals[name].val = value
 
 # vim: et sw=4 sts=4

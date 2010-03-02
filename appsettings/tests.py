@@ -6,12 +6,15 @@ Replace these with more appropriate tests for your application.
 """
 
 from django.test import TestCase
-import settingsobj, values
+from django import forms
+import settingsobj
 
+CHEESES = ('american','ricotta','fetta')
+CHEESES = tuple((a,a) for a in CHEESES)
 class Cheese:
     color = 'white'
     age = 5
-    type = values.ChoiceValue(['american','ricotta','fetta'], 'ricotta')
+    type = forms.ChoiceField(choices = CHEESES, initial='ricotta')
 
 class SimpleTest(TestCase):
     def setUp(self):
@@ -35,18 +38,19 @@ class SimpleTest(TestCase):
 
     def testAutoMagic(self):
         settings = self.settings.test
-        self.assertEquals(values.StringValue, settings.cheese._vals['color'].__class__)
-        self.assert_(isinstance(settings.cheese._vals['color'], values.StringValue))
-        self.assert_(isinstance(settings.cheese._vals['age'], values.IntValue))
-        self.assert_(isinstance(settings.cheese._vals['type'], values.ChoiceValue))
+        self.assert_(isinstance(settings.cheese._vals['color'], forms.CharField))
+        self.assert_(isinstance(settings.cheese._vals['age'], forms.IntegerField))
+        self.assert_(isinstance(settings.cheese._vals['type'], forms.ChoiceField))
 
     def testSetGet(self):
         settings = self.settings.test
         settings.cheese.color = 'blue'
         self.assertEquals(settings.cheese.color, 'blue')
-        self.assertRaises(ValueError, settings.cheese.__setattr__, 'color', 4)
-        self.assertRaises(ValueError, settings.cheese.__setattr__, 'type', 4)
-        self.assertRaises(ValueError, settings.cheese.__setattr__, 'type', 'blue')
+        self.assertRaises(forms.ValidationError, settings.cheese.__setattr__, 'age', 'red')
+        self.assertRaises(forms.ValidationError, settings.cheese.__setattr__, 'type', 4)
+        self.assertRaises(forms.ValidationError, settings.cheese.__setattr__, 'type', 'blue')
+        settings.cheese.type = 'american'
+        self.assertEquals(settings.cheese.type, 'american')
 
 __test__ = {"doctest": """
 Another way to test that 1 + 1 is equal to 2.
