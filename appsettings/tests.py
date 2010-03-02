@@ -27,16 +27,26 @@ class SimpleTest(TestCase):
         self.assert_(hasattr(self.settings, 'test'))
 
     def testSettings(self):
-        self.assert_(hasattr(self.settings.test, 'cheese'))
-        self.assert_(hasattr(self.settings.test.cheese, 'color'))
-        self.assert_(hasattr(self.settings.test.cheese, 'age'))
-        self.assert_(hasattr(self.settings.test.cheese, 'type'))
+        settings = self.settings.test
+        self.assert_(hasattr(settings, 'cheese'))
+        self.assert_(hasattr(settings.cheese, 'color'))
+        self.assert_(hasattr(settings.cheese, 'age'))
+        self.assert_(hasattr(settings.cheese, 'type'))
 
     def testAutoMagic(self):
-        self.assertEquals(self.settings.test.cheese._vals['color'].__class__, values.StringValue)
-        self.assert_(isinstance(self.settings.test.cheese._vals['color'], values.StringValue))
-        self.assert_(isinstance(self.settings.test.cheese._vals['age'], values.IntValue))
-        self.assert_(isinstance(self.settings.test.cheese._vals['type'], values.ChoiceValue))
+        settings = self.settings.test
+        self.assertEquals(values.StringValue, settings.cheese._vals['color'].__class__)
+        self.assert_(isinstance(settings.cheese._vals['color'], values.StringValue))
+        self.assert_(isinstance(settings.cheese._vals['age'], values.IntValue))
+        self.assert_(isinstance(settings.cheese._vals['type'], values.ChoiceValue))
+
+    def testSetGet(self):
+        settings = self.settings.test
+        settings.cheese.color = 'blue'
+        self.assertEquals(settings.cheese.color, 'blue')
+        self.assertRaises(ValueError, settings.cheese.__setattr__, 'color', 4)
+        self.assertRaises(ValueError, settings.cheese.__setattr__, 'type', 4)
+        self.assertRaises(ValueError, settings.cheese.__setattr__, 'type', 'blue')
 
 __test__ = {"doctest": """
 Another way to test that 1 + 1 is equal to 2.
