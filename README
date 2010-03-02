@@ -1,8 +1,6 @@
 Django appsettings
 ==================
 
-*now available on pypi! run _pip install django-appsettings_ to get it now*
-
 finally, a unified system for pluggable apps to have configurable settings.
 the django-appsettings app provides a clean api for keeping track of settings,
 and, most importantly, having settings that are configurable for a user that
