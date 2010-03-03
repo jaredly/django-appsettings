@@ -24,6 +24,7 @@ Todo
 
 - improve the web interface
 - create examples
+- add import/export via conf files
 
 Usage
 =====

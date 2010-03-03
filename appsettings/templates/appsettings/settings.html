@@ -1,9 +1,15 @@
 {% extends base_template %}
 
+{% block title %} {{ app }} - settings {% endblock %}
+{% block smalltitle %} {{ app }} - settings {% endblock %}
+
+{% block menu %} <a href="../">Back to app settings</a> {% endblock %}
+
 {% block content %}
-Hi!
 <form method="POST" action="">
-{{ form.as_p }}
+    <table>
+        {{ form.as_table }}
+    </table>
 <button class="submit">Save Settings</button>
 </form>
 

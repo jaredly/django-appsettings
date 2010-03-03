@@ -1,14 +1,11 @@
 import os
 from distutils.core import setup
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name='django-appsettings',
-    version='0.1',
+    version='0.1b',
     description='A unified settings system for pluggable django apps',
-    long_description=read('README.rst'),
     author='Jared Forsyth',
     author_email='jabapyth@gmail.com',
     license='BSD',
@@ -17,6 +14,7 @@ setup(
     packages=[
         'appsettings',
     ],
+    package_data = {'feedback': ['templates/appsettings/*']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
