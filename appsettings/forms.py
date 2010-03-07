@@ -11,6 +11,7 @@ def settings_form():
         for app_name in sorted(vars(settings).keys()):
             app = getattr(settings, app_name)
             for group_name, group in app._vals.iteritems():
+                if group._readonly:continue
                 for key, value in group._vals.iteritems():
                     fields['%s-%s-%s' % (app_name, group_name, key)] = value
         _form = type('SettingsForm', (forms.BaseForm,), {'base_fields':fields})

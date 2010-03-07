@@ -18,12 +18,12 @@ Features
   - serialization
   - display widgets
 - supports full user overrides in project/settings.py
+- '''new:''' special flags for ''readonly'' and ''global'' groups
 
 Todo
 ----
 
 - improve the web interface
-- create examples
 - add import/export via conf files
 
 Usage
@@ -64,4 +64,30 @@ using the settings in the rest of your app couldn't be easier::
         return "%s pigs are running into a house made of %s" \
                         % (settings.story.pigs, settings.story.myhouse)
 
-more thorough documentation (hopefully sphinx-pretty API docs) to come shortly.
+Special Flags
+-------------
+
+appsettings also supports a few special flags, to make settings management
+easier. Currently ''readonly'' and ''nogroup'' are supported. ''readonly'' makes
+a settings group, as you can imagine, readonly; they never interact with the
+database. ''nogroup'' makes the settings accessible outside of their group.
+See example::
+
+    ## -- walks/settings.py --
+    import appsettings
+    register = appsettings.register('walks')
+
+    @register(nogroup=True)
+    class Globals:
+        spam = 'spam and eggs'
+
+    ## -- somewhere_else.py --
+
+    import appsettings
+    settings = appsettings.settings.walks
+
+    print settings.spam ## gets routed to settings.globals.spam
+    print settings.globals.spam
+
+Please give me feedback and any questions through github
+http://github.com/jabapyth/django-appsettings
