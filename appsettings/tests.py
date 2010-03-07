@@ -8,19 +8,30 @@ Replace these with more appropriate tests for your application.
 from django.test import TestCase
 from django import forms
 import settingsobj
+import appsettings
 
 CHEESES = ('american','ricotta','fetta')
 CHEESES = tuple((a,a) for a in CHEESES)
+
 class Cheese:
     color = 'white'
     age = 5
     type = forms.ChoiceField(choices = CHEESES, initial='ricotta')
 
+class RDOnly:
+    version = 4
+
+class Globals:
+    spam = 'spamspamspam'
+
 class SimpleTest(TestCase):
     def setUp(self):
         settingsobj.Settings.single = None
         self.settings = settingsobj.Settings()
-        self.settings._register('test',Cheese)
+        register = appsettings.register('test')
+        register(Cheese)
+        register(readonly=True)(RDOnly)
+        register(Globals, nogroup=True)
 
     def tearDown(self):
         settingsobj.Settings.single = None
@@ -29,7 +40,7 @@ class SimpleTest(TestCase):
     def testGroup(self):
         self.assert_(hasattr(self.settings, 'test'))
 
-    def testSettings(self):
+    def testHasSettings(self):
         settings = self.settings.test
         self.assert_(hasattr(settings, 'cheese'))
         self.assert_(hasattr(settings.cheese, 'color'))
@@ -51,6 +62,17 @@ class SimpleTest(TestCase):
         self.assertRaises(forms.ValidationError, settings.cheese.__setattr__, 'type', 'blue')
         settings.cheese.type = 'american'
         self.assertEquals(settings.cheese.type, 'american')
+
+    def testReadOnly(self):
+        settings = self.settings.test
+        self.assertRaises(AttributeError, settings.rdonly.__setattr__, 'version', 17)
+        self.assertEquals(settings.rdonly.version, 4)
+
+    def testNoGroup(self):
+        settings = self.settings.test
+        self.assertEquals(settings.spam, 'spamspamspam')
+        self.assertEquals(settings.globals.spam, 'spamspamspam')
+
 
 __test__ = {"doctest": """
 Another way to test that 1 + 1 is equal to 2.

@@ -15,7 +15,13 @@ def register(appname):
     class Settingsgroup:
         ...
     """
-    return lambda classobj:settings._register(appname, classobj)
+    def meta(*args, **kwargs):
+        if not args and kwargs:
+            return lambda classobj:settingsobj.Settings.single._register(appname, classobj, **kwargs)
+        if len(args)!=1:
+            raise TypeError, "register(classobj) takes one argument, %d given" % (len(args))
+        return settingsobj.Settings.single._register(appname, args[0], **kwargs)
+    return meta
 
 
 from django.utils.importlib import import_module
