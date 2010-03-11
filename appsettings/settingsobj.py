@@ -12,22 +12,30 @@ from django.utils.encoding import force_unicode
 from django import forms
 
 from appsettings import user
+import appsettings
 
 class SettingsException(Exception):pass
 class MultipleSettingsException(Exception):pass
 
 class Settings(object):
     single = None
+    discovered = False
     def __init__(self):
         if Settings.single is not None:
             raise MultipleSettingsException, \
                 "can only have one settings instance"
         Settings.single = self
-    
+
     def _register(self, appname, classobj, readonly=False, main=False):
         if not hasattr(self, appname):
             setattr(self, appname, App(appname))
         getattr(self, appname)._add(classobj, readonly, main, getattr(user.settings, appname)._dct)
+
+    @classmethod
+    def get(cls):
+        if cls.single is None:
+            cls()
+        return cls.single
 
 class App(object):
     def __init__(self, app):
@@ -55,8 +63,8 @@ class App(object):
     def __getattr__(self, name):
         if name not in ('_vals', '_name', '_add', '_main'):
             if name not in self._vals and self._main:
-                if name in self._vals[self._name]._vals:
-                    return getattr(self._vals[self._name], name)
+                if name in self._vals[self._main]._vals:
+                    return getattr(self._vals[self._main], name)
                 raise SettingsException, 'group not found: %s' % name
             return self._vals[name]
         return super(App, self).__getattribute__(name)
