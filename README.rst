@@ -33,9 +33,9 @@ So you want to use this in your app? Well, just create a settings.py for your
 app (which will be auto-loaded by appsettings in the same way contrib.admin
 loads your admin.py) and register your settings. Example::
 
-    import appsettings
+    from appsettings import app
     from django import forms
-    register = appsettings.register('mymodule')
+    register = app.register('mymodule')
 
     # settings are organized into groups.
     # this will define settings
@@ -57,8 +57,8 @@ loads your admin.py) and register your settings. Example::
 
 using the settings in the rest of your app couldn't be easier::
 
-    import appsettings
-    settings = appsettings.settings.mymodule
+    from appsettings import app
+    settings = app.settings.mymodule
 
     def run_away():
         return "%s pigs are running into a house made of %s" \
