@@ -11,37 +11,23 @@ from django.contrib.sites.models import Site
 from django.utils.encoding import force_unicode
 from django import forms
 
+from appsettings import user
+
 class SettingsException(Exception):pass
 class MultipleSettingsException(Exception):pass
 
 class Settings(object):
     single = None
-    discovered = False
-    preset = {}
     def __init__(self):
         if Settings.single is not None:
             raise MultipleSettingsException, \
                 "can only have one settings instance"
         Settings.single = self
-
-    def __getattr__(self, name):
-        if Settings.discovered:
-            return super(Settings, self).__getattr__(name)
-        return ProxyDict(name, Settings.preset)
     
     def _register(self, appname, classobj, readonly=False, main=False):
         if not hasattr(self, appname):
             setattr(self, appname, App(appname))
-        getattr(self, appname)._add(classobj, readonly, main, Settins.preset.get('appname', {}))
-
-class ProxyDict(object):
-    def __init__(self, name, dct):
-        self.name = name
-        self.dct = dct[name] = {}
-    def __getattr__(self, name):
-        return ProxyDict(name, self.dct)
-    def __setattr__(self, name, val):
-        self.dct[name] = val
+        getattr(self, appname)._add(classobj, readonly, main, getattr(user.settings, appname)._dct)
 
 class App(object):
     def __init__(self, app):
@@ -58,7 +44,7 @@ class App(object):
 
         if not main:
             preset = preset.get(name, {})
-        self._vals[name] = Group(self._name, name, classobj, preset)
+        self._vals[name] = Group(self._name, name, classobj, preset, main)
         if readonly:
             self._vals[name]._readonly = readonly
         if main:
@@ -83,7 +69,7 @@ class App(object):
         super(App, self).__setattr__(name, val)
 
 class Group(object):
-    def __init__(self, appname, name, classobj, preset):
+    def __init__(self, appname, name, classobj, preset, main=False):
         self._appname = appname
         self._name = name
         self._vals = {}
@@ -110,7 +96,9 @@ class Group(object):
                 val.initial = preset[key]
             try:
                 val.initial = val.clean(val.initial)
-            except ValidationError:
+            except forms.ValidationError:
+                if main:
+                    raise SettingsException, 'setting %s.%s not set. Please set it in your settings.py' % (appname, key)
                 raise SettingsException, 'setting %s.%s.%s not set. Please set it in your settings.py' % (appname, name, key)
             val._parent = self
             self._vals[key] = val
