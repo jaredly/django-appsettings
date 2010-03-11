@@ -68,16 +68,16 @@ Special Flags
 -------------
 
 appsettings also supports a few special flags, to make settings management
-easier. Currently *readonly* and *nogroup* are supported. *readonly* makes
+easier. Currently *readonly* and *main* are supported. *readonly* makes
 a settings group, as you can imagine, readonly; they never interact with the
-database. *nogroup* makes the settings accessible outside of their group.
+database. *main* makes the settings accessible outside of their group.
 See example::
 
     ## -- walks/settings.py --
     import appsettings
     register = appsettings.register('walks')
 
-    @register(nogroup=True)
+    @register(main=True)
     class Globals:
         spam = 'spam and eggs'
 
