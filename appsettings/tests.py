@@ -31,7 +31,7 @@ class SimpleTest(TestCase):
         register = appsettings.register('test')
         register(Cheese)
         register(readonly=True)(RDOnly)
-        register(Globals, nogroup=True)
+        register(Globals, main=True)
 
     def tearDown(self):
         settingsobj.Settings.single = None
