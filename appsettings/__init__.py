@@ -41,6 +41,7 @@ def autodiscover():
     # admin.py module with errors from re-registering models and raising a
     # spurious AlreadyRegistered exception (see #8245).
     global LOADING
+    settingsobj.Settings.discovered = True
     if LOADING:
         return
     LOADING = True

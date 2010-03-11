@@ -16,55 +16,74 @@ class MultipleSettingsException(Exception):pass
 
 class Settings(object):
     single = None
+    discovered = False
+    preset = {}
     def __init__(self):
         if Settings.single is not None:
             raise MultipleSettingsException, \
                 "can only have one settings instance"
         Settings.single = self
+
+    def __getattr__(self, name):
+        if Settings.discovered:
+            return super(Settings, self).__getattr__(name)
+        return ProxyDict(name, Settings.preset)
     
-    def _register(self, appname, classobj, readonly=False, nogroup=False):
+    def _register(self, appname, classobj, readonly=False, main=False):
         if not hasattr(self, appname):
             setattr(self, appname, App(appname))
-        getattr(self, appname)._add(classobj, readonly, nogroup)
+        getattr(self, appname)._add(classobj, readonly, main, Settins.preset.get('appname', {}))
+
+class ProxyDict(object):
+    def __init__(self, name, dct):
+        self.name = name
+        self.dct = dct[name] = {}
+    def __getattr__(self, name):
+        return ProxyDict(name, self.dct)
+    def __setattr__(self, name, val):
+        self.dct[name] = val
 
 class App(object):
     def __init__(self, app):
         self._name = app
         self._vals = {}
-        self._nogroup = []
+        self._main = None
 
-    def _add(self, classobj, readonly, nogroup):
+    def _add(self, classobj, readonly, main, preset):
         name = classobj.__name__.lower()
-        if name in self._vals:
-            raise SettingsException, 'duplicate declaration of %s'%name
+        if name in self._vals or (self._main is not None and name in self._vals[self._main]):
+            raise SettingsException, 'duplicate declaration of settings group %s.%s' % (self._name, name)
         if name in ('_vals','_add','_name'):
             raise SettingsException, 'invalid group name: %s' % name
-        self._vals[name] = Group(self._name, name, classobj)
+
+        if not main:
+            preset = preset.get(name, {})
+        self._vals[name] = Group(self._name, name, classobj, preset)
         if readonly:
             self._vals[name]._readonly = readonly
-        if nogroup:
-            self._nogroup.append(name)
+        if main:
+            if self._main is not None:
+                raise SettingsException, 'multiple "main" groups defined for app %s' % self._name
+            self._main = name
 
     def __getattr__(self, name):
-        if name not in ('_vals', '_name', '_add', '_nogroup'):
-            if name not in self._vals:
-                for gname in self._nogroup:
-                    if name in self._vals[gname]._vals:
-                        return getattr(self._vals[gname], name)
+        if name not in ('_vals', '_name', '_add', '_main'):
+            if name not in self._vals and self._main:
+                if name in self._vals[self._name]._vals:
+                    return getattr(self._vals[self._name], name)
                 raise SettingsException, 'group not found: %s' % name
             return self._vals[name]
         return super(App, self).__getattribute__(name)
 
     def __setattr__(self, name, val):
-        if name not in ('_vals', '_name', '_add', '_nogroup'):
-            for gname in self._nogroup:
-                if name in self._vals[gname]._vals:
-                    return setattr(self._vals[gname], name, val)
+        if name not in ('_vals', '_name', '_add', '_main') and self._main:
+            if name in self._vals[self._name]._vals:
+                return setattr(self._vals[self._name], name, val)
             raise SettingsException, 'groups are immutable'
         super(App, self).__setattr__(name, val)
 
 class Group(object):
-    def __init__(self, appname, name, classobj):
+    def __init__(self, appname, name, classobj, preset):
         self._appname = appname
         self._name = name
         self._vals = {}
@@ -74,11 +93,7 @@ class Group(object):
             if attr.defining_class != classobj or attr.kind != 'data':
                 continue
             if attr.name.startswith('_'):
-                ## TODO: decide whether to have _readonly etc. special names.
-                #if attr.name == '_readonly':
-                #    self._readonly = True
-                #else:
-                    continue
+                continue
             val = attr.object
             key = attr.name
             if type(val) == int:
@@ -91,6 +106,12 @@ class Group(object):
                 val = forms.BooleanField(label=key.title(), initial=val)
             elif not isinstance(val, forms.Field):
                 raise SettingsException, 'settings must be of a valid form field type'
+            if preset.has_key(key):
+                val.initial = preset[key]
+            try:
+                val.initial = val.clean(val.initial)
+            except ValidationError:
+                raise SettingsException, 'setting %s.%s.%s not set. Please set it in your settings.py' % (appname, name, key)
             val._parent = self
             self._vals[key] = val
 
