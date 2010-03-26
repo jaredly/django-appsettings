@@ -33,9 +33,9 @@ So you want to use this in your app? Well, just create a settings.py for your
 app (which will be auto-loaded by appsettings in the same way contrib.admin
 loads your admin.py) and register your settings. Example::
 
-    from appsettings import app
+    import appsettings
     from django import forms
-    register = app.register('mymodule')
+    register = appsettings.register('mymodule')
 
     # settings are organized into groups.
     # this will define settings
@@ -69,7 +69,7 @@ Special Flags
 
 appsettings also supports a few special flags, to make settings management
 easier. Currently *readonly* and *main* are supported. *readonly* makes
-a settings group, as you can imagine, readonly; they never interact with the
+a settings group, as you can imagine, read-only; they never interact with the
 database. *main* makes the settings accessible outside of their group.
 See example::
 
@@ -88,6 +88,8 @@ See example::
 
     print settings.spam ## gets routed to settings.globals.spam
     print settings.globals.spam
+
+Note that you can only have one settings group flagged as "main".
 
 Please give me feedback and any questions through github
 http://github.com/jabapyth/django-appsettings
