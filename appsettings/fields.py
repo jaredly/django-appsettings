@@ -1,6 +1,7 @@
 from django.forms import widgets
 from django import forms
-from django.core import validators
+from django.utils import simplejson
+#from django.core import validators
 
 class ListWidget(widgets.Input):
     input_type = 'text'
@@ -15,7 +16,7 @@ class ListField(forms.Field):
 
     def to_python(self, value):
         """Validates the value and converts to python"""
-        if value in validators.EMPTY_VALUES:
+        if value is None:
             return ()
         elif type(value) in (tuple, list):
             return tuple(value)
@@ -35,7 +36,7 @@ class DictField(forms.Field):
 
     def to_python(self, value):
         """Validates the value and converts to python"""
-        if value in validators.EMPTY_VALUES:
+        if value is None:
             return {}
         elif type(value) is dict:
             return value
