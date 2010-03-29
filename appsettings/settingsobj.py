@@ -1,7 +1,9 @@
 try:
     from django import db
     from django.db.backends.dummy import base
+    from models import Setting
     has_db = not isinstance(db.connection, base.DatabaseWrapper)
+    numsettings = Setting.objects.all().count()
 except:
     has_db = False
 

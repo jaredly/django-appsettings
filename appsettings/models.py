@@ -18,3 +18,6 @@ class Setting(models.Model):
                 return
         super(Setting, self).__setattr__(name, value)
 
+    class Meta:
+        db_table = 'appsettings_setting'
+
