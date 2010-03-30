@@ -82,6 +82,7 @@ class Group(object):
     def __init__(self, appname, name, classobj, preset, main=False):
         self._appname = appname
         self._name = name
+        self._verbose_name = name
         self._vals = {}
         self._readonly = False
 
@@ -89,6 +90,9 @@ class Group(object):
             if attr.defining_class != classobj or attr.kind != 'data':
                 continue
             if attr.name.startswith('_'):
+                continue
+            if attr.name == 'verbose_name':
+                self._verbose_name = attr.object
                 continue
             val = attr.object
             key = attr.name
@@ -125,14 +129,14 @@ class Group(object):
                     pass
 
     def __getattr__(self, name):
-        if name not in ('_vals', '_name', '_appname', '_readonly'):
+        if name not in ('_vals', '_name', '_appname', '_verbose_name', '_readonly'):
             if name not in self._vals:
                 raise AttributeError, 'setting "%s" not found'%name
             return self._vals[name].initial
         return super(Group, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
-        if name in ('_vals', '_name', '_appname', '_readonly'):
+        if name in ('_vals', '_name', '_appname', '_verbose_name', '_readonly'):
             return object.__setattr__(self, name, value)
         if self._readonly:
             raise AttributeError, 'settings group %s is read-only' % self._name
