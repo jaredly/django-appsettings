@@ -1,10 +1,11 @@
+from django.conf import settings
 '''this autodiscover stuff was copied from the contrib.admin app'''
-
 from django.utils.importlib import import_module
 # A flag to tell us if autodiscover is running.  autodiscover will set this to
 # True while running, and False when it finishes.
 LOADING = False
 
+SHOW_ADMIN = getattr(settings, 'APPSETTINGS_SHOW_ADMIN', True)
 
 def register(appname):
     """register your settings with appsettings. usually used as a @decorator

@@ -5,8 +5,8 @@ admin.autodiscover()
 import views
 
 urlpatterns = patterns('',
-        (r'^$', views.app_index),
-        (r'^(?P<app_name>[^/]+)/$', views.app_settings),
+        url(r'^$', views.app_index, name='index'),
+        url(r'^(?P<app_name>[^/]+)/$', views.app_settings, name='app_settings'),
     )
 
 # vim: et sw=4 sts=4

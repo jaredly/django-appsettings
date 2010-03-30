@@ -27,7 +27,20 @@ def app_settings(request, app_name=None, template = 'appsettings/settings.html',
                     setattr(getattr(settingsinst, app)._vals[group], name, val)
     else:
         form = editor()
+    #fieldsets = construct_fieldsets(form, form.fieldsets)
+    print form.fieldsets
+    #assert False
     return render_to_response(template, 
-            {'app':app_name,'form':form, 'base_template':base_template}, 
-            context_instance=RequestContext(request))
+                              {'app':app_name,'form':form, 'base_template':base_template},
+                              context_instance=RequestContext(request))
 
+def construct_fieldsets(form, fieldset_names):
+    print form.fieldsets
+    fieldsets = {}
+    for group_name, fields in fieldset_names.items():
+        fields = {}
+        for field in fields:
+            fields[field] = form.fields[field]
+        fieldsets[group_name] = fields
+    print fieldsets
+    return fieldsets
