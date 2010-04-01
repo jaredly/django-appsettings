@@ -5,7 +5,10 @@ from django.utils.importlib import import_module
 # True while running, and False when it finishes.
 LOADING = False
 
-SHOW_ADMIN = getattr(settings, 'APPSETTINGS_SHOW_ADMIN', True)
+try:
+    SHOW_ADMIN = getattr(settings, 'APPSETTINGS_SHOW_ADMIN', True)
+except ImportError:
+    SHOW_ADMIN = False
 
 def register(appname):
     """register your settings with appsettings. usually used as a @decorator
