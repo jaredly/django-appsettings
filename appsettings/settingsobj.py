@@ -88,15 +88,23 @@ class Group(object):
         self._readonly = False
 
         for attr in inspect.classify_class_attrs(classobj):
-            if attr.defining_class != classobj or attr.kind != 'data':
+            # for Python 2.5 compatiblity, we use tuple indexes
+            # instead of the attribute names (which are only available)
+            # from Python 2.6 onwards.  Here's the mapping:
+            #   attr[0]  attr.name   Attribute name
+            #   attr[1]  attr.kind   class/static method, property, data
+            #   attr[2]  attr.defining_class  The `class` object that created this attr
+            #   attr[3]  attr.object Attribute value
+            #
+            if attr[2] != classobj or attr[1] != 'data':
                 continue
-            if attr.name.startswith('_'):
+            if attr[0].startswith('_'):
                 continue
-            if attr.name == 'verbose_name':
-                self._verbose_name = attr.object
+            if attr[0] == 'verbose_name':
+                self._verbose_name = attr[3]
                 continue
-            val = attr.object
-            key = attr.name
+            val = attr[3]
+            key = attr[0]
             if type(val) == int:
                 val = forms.IntegerField(label=key.title(), initial=val)
             elif type(val) == float:
