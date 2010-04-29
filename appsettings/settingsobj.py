@@ -89,8 +89,8 @@ class Group(object):
 
         for attr in inspect.classify_class_attrs(classobj):
             # for Python 2.5 compatiblity, we use tuple indexes
-            # instead of the attribute names (which are only available)
-            # from Python 2.6 onwards.  Here's the mapping:
+            # instead of the attribute names (which are only available
+            # from Python 2.6 onwards).  Here's the mapping:
             #   attr[0]  attr.name   Attribute name
             #   attr[1]  attr.kind   class/static method, property, data
             #   attr[2]  attr.defining_class  The `class` object that created this attr
