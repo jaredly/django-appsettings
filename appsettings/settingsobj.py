@@ -19,25 +19,26 @@ import appsettings
 class SettingsException(Exception):pass
 class MultipleSettingsException(Exception):pass
 
+
 class Settings(object):
-    single = None
     discovered = False
-    def __init__(self):
-        if Settings.single is not None:
-            raise MultipleSettingsException, \
-                "can only have one settings instance"
-        Settings.single = self
+    _state = { }
+    # see http://code.activestate.com/recipes/66531/
+    def __new__(cls, *p, **k):
+        self = object.__new__(cls, *p, **k)
+        self.__dict__ = cls._state
+        return self
+
+    @classmethod
+    def _reset(cls):
+        """Reset all `Settings` object to the initial empty condition."""
+        cls._state = { }
 
     def _register(self, appname, classobj, readonly=False, main=False):
         if not hasattr(self, appname):
             setattr(self, appname, App(appname))
         getattr(self, appname)._add(classobj, readonly, main, getattr(user.settings, appname)._dct)
 
-    @classmethod
-    def get(cls):
-        if cls.single is None:
-            cls()
-        return cls.single
 
 class App(object):
     def __init__(self, app):

@@ -26,7 +26,7 @@ class Globals:
 
 class SimpleTest(TestCase):
     def setUp(self):
-        settingsobj.Settings.single = None
+        settingsobj.Settings._reset()
         self.settings = settingsobj.Settings()
         register = appsettings.register('test')
         register(Cheese)
@@ -34,7 +34,7 @@ class SimpleTest(TestCase):
         register(Globals, main=True)
 
     def tearDown(self):
-        settingsobj.Settings.single = None
+        settingsobj.Settings._reset()
         self.settings = None
 
     def testGroup(self):

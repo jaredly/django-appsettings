@@ -1,6 +1,6 @@
 import settingsobj
 
-settings = settingsobj.Settings.get()
+settings = settingsobj.Settings()
 if not settingsobj.Settings.discovered:
     from appsettings import autodiscover
     autodiscover()

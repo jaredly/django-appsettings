@@ -1,6 +1,6 @@
 from django import forms
 from settingsobj import Settings
-settings = Settings.single
+settings = Settings()
 
 _form = None
 
