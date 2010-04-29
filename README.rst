@@ -64,6 +64,13 @@ using the settings in the rest of your app couldn't be easier::
         return "%s pigs are running into a house made of %s" \
                         % (settings.story.pigs, settings.story.myhouse)
 
+.. note::
+
+    As you can see, group names are converted to *lowercase* when accessing.
+    This is to follow the django convention set in models and other areas, and
+    because I think it looks better. If you have a good argument either way,
+    feel free to make an `issue <http://github.com/jabapyth/django-appsettings/issues>`_.
+
 Special Flags
 -------------
 
