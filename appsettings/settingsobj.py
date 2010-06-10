@@ -12,6 +12,8 @@ from models import Setting
 from django.contrib.sites.models import Site
 from django.utils.encoding import force_unicode
 from django import forms
+from django.core.cache import cache
+
 
 from appsettings import user
 import appsettings
@@ -22,6 +24,7 @@ class MultipleSettingsException(Exception):pass
 
 class Settings(object):
     discovered = False
+    using_middleware = False
     _state = { }
     # see http://code.activestate.com/recipes/66531/
     def __new__(cls, *p, **k):
@@ -38,6 +41,20 @@ class Settings(object):
         if not hasattr(self, appname):
             setattr(self, appname, App(appname))
         getattr(self, appname)._add(classobj, readonly, main, getattr(user.settings, appname)._dct)
+
+    def update_from_db(self):
+        if has_db:
+            settings = Setting.objects.all()
+            for setting in settings:
+                app = getattr(self, setting.app)
+                if app._vals.has_key(setting.class_name):
+                    group = app._vals[setting.class_name]
+                    if group._vals.has_key(setting.key):
+                        group._vals[setting.key].initial = group._vals[setting.key].clean(setting.value)
+                    else:
+                        ## the app removed the setting... shouldn't happen
+                        ## in production. maybe error? or del it?
+                        pass
 
 
 class App(object):
@@ -86,6 +103,7 @@ class Group(object):
         self._verbose_name = name
         self._vals = {}
         self._readonly = False
+        self._cache_prefix = 'appsetting-%s-%s-%s-' % (Site.objects.get_current().pk, self._appname, self._name)
 
         for attr in inspect.classify_class_attrs(classobj):
             # for Python 2.5 compatiblity, we use tuple indexes
@@ -133,19 +151,30 @@ class Group(object):
                 if self._vals.has_key(setting.key):
                     self._vals[setting.key].initial = self._vals[setting.key].clean(setting.value)
                 else:
-                    ## the app removed the setting... shouldn't happen 
+                    ## the app removed the setting... shouldn't happen
                     ## in production. maybe error? or del it?
                     pass
 
     def __getattr__(self, name):
-        if name not in ('_vals', '_name', '_appname', '_verbose_name', '_readonly'):
+        if name not in ('_vals', '_name', '_appname', '_verbose_name', '_readonly', '_cache_prefix'):
             if name not in self._vals:
                 raise AttributeError, 'setting "%s" not found'%name
+            if has_db:
+                if appsettings.USE_CACHE and cache.has_key(self._cache_prefix+name):
+                    return cache.get(self._cache_prefix+name)
+                print "middleware?: %s"%Settings.using_middleware
+                if not Settings.using_middleware:
+                    try:
+                        setting = Setting.objects.get(app=self._appname, class_name=self._name, key=name)
+                    except Setting.DoesNotExist:
+                        pass
+                    else:
+                        return self._vals[setting.key].clean(setting.value)
             return self._vals[name].initial
         return super(Group, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
-        if name in ('_vals', '_name', '_appname', '_verbose_name', '_readonly'):
+        if name in ('_vals', '_name', '_appname', '_verbose_name', '_readonly', '_cache_prefix'):
             return object.__setattr__(self, name, value)
         if self._readonly:
             raise AttributeError, 'settings group %s is read-only' % self._name
@@ -170,5 +199,7 @@ class Group(object):
         serialized = force_unicode(serialized)
         setting.value = serialized
         setting.save()
+        if appsettings.USE_CACHE:
+            cache.set(self._cache_prefix+name, value)
 
 # vim: et sw=4 sts=4

@@ -26,7 +26,15 @@ def app_settings(request, app_name=None, template = 'appsettings/settings.html',
                 if val != getattr(settingsinst, app)._vals[group]._vals[name].initial:
                     setattr(getattr(settingsinst, app)._vals[group], name, val)
     else:
-        form = editor()
+        initial = {}
+        for app_name in sorted(vars(settingsinst).keys()):
+            app = getattr(settingsinst, app_name)
+            for group_name, group in app._vals.iteritems():
+                if group._readonly:continue
+                for key, value in group._vals.iteritems():
+                    field_name = u'%s-%s-%s' % (app_name, group_name, key)
+                    initial[field_name] = getattr(group, key)
+        form = editor(initial)
     return render_to_response(template, 
                               {'app':app_name,'form':form, 'base_template':base_template},
                               context_instance=RequestContext(request))

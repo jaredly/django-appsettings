@@ -10,6 +10,9 @@ try:
 except ImportError:
     SHOW_ADMIN = False
 
+
+USE_CACHE = getattr(settings, 'APPSETTINGS_USE_CACHE', False)
+
 def register(appname):
     """register your settings with appsettings. usually used as a @decorator
     e.g.
