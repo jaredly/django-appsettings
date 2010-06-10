@@ -66,10 +66,13 @@ Using the settings in the rest of your app couldn't be easier::
                         % (settings.story.pigs, settings.story.myhouse)
 
 To enable users to edit the settings from the front end, add the following line to urls.py::
+
     url(r'^appsettings/', include('appsettings.urls')),
 
 To enable caching, add the following line to your main settings.py::
+
     APPSETTINGS_USE_CACHE = True
+
 and set CACHE_BACKEND to something that supports cross-process caching (i.e.: NOT 'locmem://')
 
 .. note::
