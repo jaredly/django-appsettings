@@ -162,7 +162,6 @@ class Group(object):
             if has_db:
                 if appsettings.USE_CACHE and cache.has_key(self._cache_prefix+name):
                     return cache.get(self._cache_prefix+name)
-                print "middleware?: %s"%Settings.using_middleware
                 if not Settings.using_middleware:
                     try:
                         setting = Setting.objects.get(app=self._appname, class_name=self._name, key=name)
