@@ -19,6 +19,7 @@ Features
   - display widgets
 - supports full user overrides in project/settings.py
 - **new:** special flags for *readonly* and *global* groups
+- **new:** support for caching
 
 Todo
 ----
@@ -55,7 +56,7 @@ loads your admin.py) and register your settings. Example::
                                              ('bricks', 'Bricks')),
                                     initial = 'straw')
 
-using the settings in the rest of your app couldn't be easier::
+Using the settings in the rest of your app couldn't be easier::
 
     from appsettings import app
     settings = app.settings.mymodule
@@ -63,6 +64,13 @@ using the settings in the rest of your app couldn't be easier::
     def run_away():
         return "%s pigs are running into a house made of %s" \
                         % (settings.story.pigs, settings.story.myhouse)
+
+To enable users to edit the settings from the front end, add the following line to urls.py:
+    url(r'^appsettings/', include('appsettings.urls')),
+
+To enable caching, add the following line to your main settings.py:
+    APPSETTINGS_USE_CACHE = True
+and set CACHE_BACKEND to something that supports cross-process caching (i.e.: NOT 'locmem://')
 
 .. note::
 
