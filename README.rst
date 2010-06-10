@@ -20,6 +20,7 @@ Features
 - supports full user overrides in project/settings.py
 - **new:** special flags for *readonly* and *global* groups
 - **new:** support for caching
+- **new:** middleware to limit database access.
 
 Todo
 ----
@@ -69,11 +70,32 @@ To enable users to edit the settings from the front end, add the following line 
 
     url(r'^appsettings/', include('appsettings.urls')),
 
-To enable caching, add the following line to your main settings.py::
+If a user change the settings (from the front end) then they will be saved to the database. The settings will then be retrieved from the database whenever they are used. Retrieving the settings from the database in this way could be time / resource expensive so there are two options to speed this up:
+
+1. Enable caching.
+
+ If caching is enabled the settings will be stored in the cache at initialisation time then retrieved and set to the cache whenever the settings are accessed or changed. As long as the cache backend supports cross-process caching then all threads will share the same settings.
+
+ To enable caching, add the following line to your main settings.py::
 
     APPSETTINGS_USE_CACHE = True
 
-and set CACHE_BACKEND to something that supports cross-process caching (i.e.: NOT 'locmem://')
+ and set CACHE_BACKEND to something that supports cross-process caching (i.e.: NOT 'locmem://')
+
+2. Use the SettingsMiddleware
+
+ The SettingsMiddleware will copy all the settings stored in the database into the current request (thread) at the start of the request so that they do not need to be retrieved eache time they are accessed (during the request). 
+
+ To use the middleware add ''appsettings.middleware.SettingsMiddleware' to the MIDDLEWARE_CLASSES in your project's setttings.py
+
+ e.g::
+
+    MIDDLEWARE_CLASSES = (
+        'django.middleware.common.CommonMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'appsettings.middleware.SettingsMiddleware',
+    )
 
 .. note::
 
