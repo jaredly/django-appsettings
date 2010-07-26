@@ -131,5 +131,12 @@ See example::
 
 Note that you can only have one settings group flagged as "main".
 
+.. note::
+
+    If you're using Python <= 2.5, the @decorator syntax won't work for
+    classes.  In that case, after your class declaration put the line
+    ``Globals = register(main=True)(Globals)``. See the `PEP
+    <http://www.python.org/dev/peps/pep-0318/#motivation>`_.
+
 Please give me feedback and any questions through github
 http://github.com/jabapyth/django-appsettings
