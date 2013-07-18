@@ -14,7 +14,7 @@ setup(
     packages=[
         'appsettings',
     ],
-    package_data = {'feedback': ['templates/appsettings/*']},
+    package_data = {'appsettings': ['templates/appsettings/*']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
